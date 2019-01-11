@@ -20,13 +20,13 @@ def create_platform(x=0, y=0, width=20, height=20):
 
 def create_falling_circle(x, y):
     circle_image = pyglet.resource.image("data/images/circle.png")
-    circle_image.anchor_x = 15
-    circle_image.anchor_y = 15
+    circle_image.anchor_x = 32
+    circle_image.anchor_y = 32
 
     body = pymunk.Body(mass=2, moment=1000)
     body.center_of_gravity = (.5, .5)
 
-    poly = pymunk.Circle(body, radius=15)
+    poly = pymunk.Circle(body, radius=30)
     poly.elasticity = .9
     poly.friction = 0.8
 
@@ -35,11 +35,11 @@ def create_falling_circle(x, y):
 
 def create_player(x, y):
     box_image = pyglet.resource.image("data/images/box2.png")
-    box_image.anchor_x = 10
-    box_image.anchor_y = 10
+    box_image.anchor_x = 16
+    box_image.anchor_y = 32
     body = pymunk.Body(mass=5, moment=1000)
-    body.center_of_gravity = (.5, 0)
-    poly = pymunk.Poly.create_box(body, size=(20, 20))
+    body.center_of_gravity = (.5, .5)
+    poly = pymunk.Poly.create_box(body, size=(32, 64))
     poly.elasticity = .3
     poly.friction = 0.1
     return Player(img=box_image, body=body, shape=poly, input_handler=input_handler, x=x, y=y)
@@ -81,9 +81,9 @@ if __name__ == "__main__":
             stage.add_actor(box)
 
         if button == mouse.RIGHT:
-            shape = stage.space.point_query((_x, _y), pymunk.inf, pymunk.ShapeFilter())
+            shape = stage.space.point_query_nearest((_x, _y), pymunk.inf, pymunk.ShapeFilter())
             print(shape)
-            # stage.space.gravity = 0, -stage.space.gravity[1]
+            stage.space.gravity = 0, -stage.space.gravity[1]
 
 
     def update(dt):
@@ -94,5 +94,5 @@ if __name__ == "__main__":
         stage.draw()
 
 
-    pyglet.clock.schedule_interval(update, 1 / 144.0)
+    pyglet.clock.schedule_interval(update, 1 / 60.0)
     pyglet.app.run()

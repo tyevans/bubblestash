@@ -129,12 +129,7 @@ class Camera(object):
         # Set clear color
         self.width = width
         self.height = height
-        glClearColor(0 / 255, 0 / 255, 0 / 255, 0 / 255)
-
-        # Set antialiasing
-        glEnable(GL_LINE_SMOOTH)
-        glEnable(GL_POLYGON_SMOOTH)
-        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
+        glClearColor(0, 0, 0, 255)
 
         # Set alpha blending
         glEnable(GL_BLEND)
