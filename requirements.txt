@@ -1,0 +1,5 @@
+pyglet
+pymunk
+numpy
+pyqt5
+opencv-python
