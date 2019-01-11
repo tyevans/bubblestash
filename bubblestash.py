@@ -2,7 +2,8 @@ import pyglet
 import pymunk
 from pyglet.gl import glViewport, glMatrixMode, gl, glLoadIdentity, glOrtho, glClearColor, glEnable, GL_LINE_SMOOTH, \
     GL_POLYGON_SMOOTH, GL_LINE_SMOOTH_HINT, GL_NICEST, glHint, GL_BLEND, glBlendFunc, GL_SRC_ALPHA, \
-    GL_ONE_MINUS_SRC_ALPHA
+    GL_ONE_MINUS_SRC_ALPHA, glBindTexture, glPushAttrib, GL_COLOR_BUFFER_BIT, glTexParameteri, GL_TEXTURE_MAG_FILTER, \
+    GL_NEAREST
 
 
 class KeyboardInputHandler(object):
@@ -50,6 +51,14 @@ class Actor(pyglet.sprite.Sprite):
         self.body.position = x, y
         self.shape = shape
         self.shape.actor = self
+
+    def set_state(self):
+        glEnable(self.texture.target)
+        glBindTexture(self.texture.target, self.texture.id)
+        glPushAttrib(GL_COLOR_BUFFER_BIT)
+        glEnable(GL_BLEND)
+        glTexParameteri(self.texture.target, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+        glBlendFunc(self.blend_src, self.blend_dest)
 
     def act(self, dt):
         self.update(

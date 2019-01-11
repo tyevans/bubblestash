@@ -1,12 +1,13 @@
 import pyglet
 import pymunk
+from pyglet.gl import glTexParameteri, GL_TEXTURE_MIN_FILTER, GL_NEAREST, GL_TEXTURE_MAG_FILTER
 from pyglet.window import key, mouse
 
 from bubblestash import Actor, KeyboardInputHandler, Stage, Camera, GameWindow, Player
 
 
-def create_platform(x=0, y=0, width=20, height=20):
-    box_image = pyglet.resource.image("data/images/box.png")
+def create_platform(x=0, y=0, width=512, height=64):
+    box_image = pyglet.resource.image("data/images/platform.png")
     body = pymunk.Body(body_type=pymunk.Body.STATIC)
     start = (0, height)
     end = (width, height)
@@ -14,7 +15,7 @@ def create_platform(x=0, y=0, width=20, height=20):
     segment.elasticity = 1.
     segment.friction = 0.5
     platform = Actor(img=box_image, x=x, y=y, body=body, shape=segment)
-    platform.update(scale_x=width / 20, scale_y=height / 20)
+    platform.update(scale_x=width / 512, scale_y=height / 64)
     return platform
 
 
@@ -34,12 +35,12 @@ def create_falling_circle(x, y):
 
 
 def create_player(x, y):
-    box_image = pyglet.resource.image("data/images/box2.png")
-    box_image.anchor_x = 16
-    box_image.anchor_y = 32
+    box_image = pyglet.resource.image("data/images/player.png")
+    box_image.anchor_x = 32
+    box_image.anchor_y = 64
     body = pymunk.Body(mass=5, moment=1000)
     body.center_of_gravity = (.5, .5)
-    poly = pymunk.Poly.create_box(body, size=(32, 64))
+    poly = pymunk.Poly.create_box(body, size=(64, 128))
     poly.elasticity = .3
     poly.friction = 0.1
     return Player(img=box_image, body=body, shape=poly, input_handler=input_handler, x=x, y=y)
@@ -67,9 +68,11 @@ if __name__ == "__main__":
     window = GameWindow(width=1280, height=720, input_handler=input_handler, key_mapping=key_mapping,
                         camera=camera)
 
-    stage.add_actor(create_platform(280, 50, width=720, height=20))
+    stage.add_actor(create_platform(280, 50))
 
-    player = create_player(300, 90)
+    stage.add_actor(create_platform(700, 200))
+
+    player = create_player(300, 300)
     stage.add_actor(player)
 
 
