@@ -1,5 +1,7 @@
 import pyglet
 from pyglet import font
+from pyglet.gl import glEnable, glBindTexture, glPushAttrib, GL_COLOR_BUFFER_BIT, GL_BLEND, glTexParameteri, \
+    GL_TEXTURE_MAG_FILTER, GL_NEAREST, glBlendFunc
 from pyglet.text import Label
 
 font.add_file("./data/fonts/PressStart2P-Regular.ttf")
@@ -62,21 +64,34 @@ class SpeechBubble(object):
         self.label.draw()
 
 
-window = pyglet.window.Window()
+if __name__ == "__main__":
+    window = pyglet.window.Window()
 
-bubbles = [
-    SpeechBubble(30, 350, "Hello, World!"),
-    SpeechBubble(30, 260, "Wow this is a longer one!"),
-    SpeechBubble(30, 170, "short!"),
-    SpeechBubble(30, 15, "aaaaaaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaaaaa!")
-]
+    guy_image = pyglet.image.load("./data/images/guymouthshapes/AHH.png")
+    glEnable(guy_image.texture.target)
+    glBindTexture(guy_image.texture.target, guy_image.texture.id)
+    glPushAttrib(GL_COLOR_BUFFER_BIT)
+    glEnable(GL_BLEND)
+    glTexParameteri(guy_image.texture.target, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+
+    guy = pyglet.sprite.Sprite(img=guy_image, x=15, y=10)
+
+    guy.update(scale_x=4, scale_y=4)
+
+    bubbles = [
+        # SpeechBubble(30, 350, "Hello, World!"),
+        # SpeechBubble(30, 260, "Wow this is a longer one!"),
+        # SpeechBubble(30, 170, "short!"),
+        SpeechBubble(80, 40, "Bananas")
+    ]
 
 
-@window.event
-def on_draw():
-    window.clear()
-    for b in bubbles:
-        b.draw()
+    @window.event
+    def on_draw():
+        window.clear()
+        guy.draw()
+        for b in bubbles:
+            b.draw()
 
 
-pyglet.app.run()
+    pyglet.app.run()

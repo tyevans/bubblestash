@@ -1,55 +1,111 @@
 import pyglet
 import pymunk
-from pyglet.gl import glTexParameteri, GL_TEXTURE_MIN_FILTER, GL_NEAREST, GL_TEXTURE_MAG_FILTER
 from pyglet.window import key, mouse
 
-from bubblestash import Actor, KeyboardInputHandler, Stage, Camera, GameWindow, Player
+from bubblestash import actor, controls
+from bubblestash.camera import Camera
+from bubblestash.stage import Stage
+from bubblestash.window import GameWindow
+from quote import SpeechBubble
 
 
-def create_platform(x=0, y=0, width=512, height=64):
-    box_image = pyglet.resource.image("data/images/platform.png")
-    body = pymunk.Body(body_type=pymunk.Body.STATIC)
-    start = (0, height)
-    end = (width, height)
-    segment = pymunk.Segment(body, start, end, 0.0)
-    segment.elasticity = 1.
-    segment.friction = 0.5
-    platform = Actor(img=box_image, x=x, y=y, body=body, shape=segment)
-    platform.update(scale_x=width / 512, scale_y=height / 64)
-    return platform
+class CollisionTypes(object):
+    PLATFORM = 0
+    PLAYER = 1
+    PLAYER_BULLET = 2
+    ENEMY_BULLET = 3
+    ENEMY = 4
+    POWERUP = 5
+    PROP = 6
+    SIGN = 7
 
 
-def create_falling_circle(x, y):
-    circle_image = pyglet.resource.image("data/images/circle.png")
-    circle_image.anchor_x = 32
-    circle_image.anchor_y = 32
+class Player(actor.Actor):
+    speed = 300
+    jump_speed = 3000
+    jump_duration = 0.2
 
-    body = pymunk.Body(mass=2, moment=1000)
-    body.center_of_gravity = (.5, .5)
+    def __init__(self, input_handler, *args, **kwargs):
+        self.jump_time = 0
+        self.input_handler = input_handler
+        box_image = pyglet.resource.image("data/images/player.png")
+        box_image.anchor_x = 32
+        box_image.anchor_y = 64
+        body = pymunk.Body(mass=5, moment=10000)
+        body.center_of_gravity = (.5, .5)
+        poly = pymunk.Poly.create_box(body, size=(64, 128))
+        poly.elasticity = .3
+        poly.friction = 0.1
+        poly.collision_type = CollisionTypes.PLAYER
+        super().__init__(img=box_image, body=body, shape=poly, *args, **kwargs)
 
-    poly = pymunk.Circle(body, radius=30)
-    poly.elasticity = .9
-    poly.friction = 0.8
+    def act(self, dt):
+        self.body.angle = 0
+        if self.input_handler.key_down("LEFT"):
+            self.body.velocity -= (self.speed * dt, 0)
 
-    return Actor(img=circle_image, x=x, y=y, body=body, shape=poly)
+        if self.input_handler.key_down("RIGHT"):
+            self.body.velocity += (self.speed * dt, 0)
+
+        if self.input_handler.key_down("JUMP"):
+            interval = min(dt, self.jump_time)
+            if interval:
+                self.jump_time -= interval
+                self.body.velocity += (0, self.jump_speed * dt)
+        else:
+            self.jump_time = self.jump_duration
+        super().act(dt)
 
 
-def create_player(x, y):
-    box_image = pyglet.resource.image("data/images/player.png")
-    box_image.anchor_x = 32
-    box_image.anchor_y = 64
-    body = pymunk.Body(mass=5, moment=1000)
-    body.center_of_gravity = (.5, .5)
-    poly = pymunk.Poly.create_box(body, size=(64, 128))
-    poly.elasticity = .3
-    poly.friction = 0.1
-    return Player(img=box_image, body=body, shape=poly, input_handler=input_handler, x=x, y=y)
+class Boulder(actor.Actor):
+
+    def __init__(self, radius=30, *args, **kwargs):
+        circle_image = pyglet.resource.image("data/images/circle.png")
+        circle_image.anchor_x = 32
+        circle_image.anchor_y = 32
+
+        body = pymunk.Body(mass=2, moment=10000)
+        body.center_of_gravity = (.5, .5)
+
+        poly = pymunk.Circle(body, radius=radius)
+        poly.elasticity = .9
+        poly.friction = 0.8
+        poly.collision_type = CollisionTypes.PROP
+        super().__init__(img=circle_image, body=body, shape=poly, *args, **kwargs)
+
+
+class Platform(actor.Actor):
+
+    def __init__(self, width=512, height=64, *args, **kwargs):
+        box_image = pyglet.resource.image("data/images/platform.png")
+        box_image.anchor_x = 256
+        box_image.anchor_y = 32
+        body = pymunk.Body(body_type=pymunk.Body.STATIC)
+        body.center_of_gravity = (0.5, 0.5)
+        poly = pymunk.Poly.create_box(body, size=(width, height))
+        poly.elasticity = 1.
+        poly.friction = 0.5
+        poly.collision_type = CollisionTypes.PLATFORM
+        super().__init__(img=box_image, body=body, shape=poly, *args, **kwargs)
+        self.update(scale_x=width / 512, scale_y=height / 64)
+
+
+class Sign(actor.Actor):
+
+    def __init__(self, *args, **kwargs):
+        sign_image = pyglet.image.load("./data/images/sign.png")
+        sign_image.anchor_x = 32
+        sign_image.anchor_y = 0
+
+        body = pymunk.Body(body_type=pymunk.Body.STATIC)
+        body.center_of_gravity = (0.5, 0)
+        poly = pymunk.Poly.create_box(body, size=(64, 128))
+        poly.collision_type = CollisionTypes.SIGN
+        super().__init__(img=sign_image, body=body, shape=poly, *args, **kwargs)
 
 
 if __name__ == "__main__":
-    input_handler = KeyboardInputHandler()
-
-    key_mapping = {
+    input_handler = controls.KeyboardInputHandler({
         key.W: "UP",
         key.A: "LEFT",
         key.S: "DOWN",
@@ -59,42 +115,74 @@ if __name__ == "__main__":
         key.LEFT: "CAMERA_LEFT",
         key.DOWN: "CAMERA_DOWN",
         key.RIGHT: "CAMERA_RIGHT",
-    }
+    })
+
+    camera = Camera(0, 0, 1280, 720)
+    window = GameWindow(width=1280, height=720, camera=camera)
 
     stage = Stage()
     stage.space.gravity = 0, -900
 
-    camera = Camera(0, 0, 1280, 720)
-    window = GameWindow(width=1280, height=720, input_handler=input_handler, key_mapping=key_mapping,
-                        camera=camera)
+    stage.add_actor(Platform(x=280, y=50))
 
-    stage.add_actor(create_platform(280, 50))
+    stage.add_actor(Platform(x=700, y=200))
 
-    stage.add_actor(create_platform(700, 200))
-
-    player = create_player(300, 300)
+    player = Player(input_handler, x=300, y=300)
     stage.add_actor(player)
+
+    sign = Sign(x=632, y=234)
+    stage.add_actor(sign)
+
+    props = []
+
+
+    def pre_solve(arbiter, space, data):
+        if arbiter.is_first_contact:
+            bubble = SpeechBubble(650, 360, "This sign has important things to say!")
+            props.append(bubble)
+        return False
+
+
+    def separate(arbiter, space, data):
+        del props[::]
+
+
+    handler = stage.space.add_collision_handler(CollisionTypes.PLAYER, CollisionTypes.SIGN)
+    handler.pre_solve = pre_solve
+    handler.separate = separate
+
+
+    @window.event
+    def on_key_press(symbol, modifiers):
+        return input_handler.on_key_press(symbol, modifiers)
+
+
+    @window.event
+    def on_key_release(symbol, modifiers):
+        return input_handler.on_key_release(symbol, modifiers)
 
 
     @window.event
     def on_mouse_release(x, y, button, modifiers):
         _x, _y = camera.screen_to_world_coords(x, y)
         if button == mouse.LEFT:
-            box = create_falling_circle(_x, _y)
+            box = Boulder(x=_x, y=_y)
             stage.add_actor(box)
 
         if button == mouse.RIGHT:
-            shape = stage.space.point_query_nearest((_x, _y), pymunk.inf, pymunk.ShapeFilter())
-            print(shape)
-            stage.space.gravity = 0, -stage.space.gravity[1]
+            print(_x, _y)
+            # shape = stage.space.point_query_nearest((_x, _y), pymunk.inf, pymunk.ShapeFilter())
+            # print(shape)
+            # stage.space.gravity = 0, -stage.space.gravity[1]
 
 
     def update(dt):
         stage.act(dt)
         camera.look_at(player)
-
         window.clear()
         stage.draw()
+        for prop in props:
+            prop.draw()
 
 
     pyglet.clock.schedule_interval(update, 1 / 60.0)
