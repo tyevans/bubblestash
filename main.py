@@ -26,18 +26,28 @@ class Player(actor.Actor):
     jump_duration = 0.2
 
     def __init__(self, input_handler, *args, **kwargs):
+        player_image = pyglet.resource.image('data/images/player.png')
+        player_img_seq = pyglet.image.ImageGrid(player_image, 1, 3)
+
+        frames = []
+        for i, image in enumerate(player_img_seq):
+            print(image)
+            image.anchor_x = 32
+            image.anchor_y = 64
+            frame = pyglet.image.AnimationFrame(image, .25)
+            frames.append(frame)
+
+        self.animation = pyglet.image.Animation(frames)
+
         self.jump_time = 0
         self.input_handler = input_handler
-        box_image = pyglet.resource.image("data/images/player.png")
-        box_image.anchor_x = 32
-        box_image.anchor_y = 64
         body = pymunk.Body(mass=5, moment=10000)
         body.center_of_gravity = (.5, .5)
         poly = pymunk.Poly.create_box(body, size=(64, 128))
         poly.elasticity = .3
         poly.friction = 0.1
         poly.collision_type = CollisionTypes.PLAYER
-        super().__init__(img=box_image, body=body, shape=poly, *args, **kwargs)
+        super().__init__(img=self.animation, body=body, shape=poly, *args, **kwargs)
 
     def act(self, dt):
         self.body.angle = 0
@@ -95,10 +105,10 @@ class Sign(actor.Actor):
     def __init__(self, *args, **kwargs):
         sign_image = pyglet.image.load("./data/images/sign.png")
         sign_image.anchor_x = 32
-        sign_image.anchor_y = 0
+        sign_image.anchor_y = 64
 
         body = pymunk.Body(body_type=pymunk.Body.STATIC)
-        body.center_of_gravity = (0.5, 0)
+        body.center_of_gravity = (0.5, 0.5)
         poly = pymunk.Poly.create_box(body, size=(64, 128))
         poly.collision_type = CollisionTypes.SIGN
         super().__init__(img=sign_image, body=body, shape=poly, *args, **kwargs)
@@ -123,15 +133,15 @@ if __name__ == "__main__":
     stage = Stage()
     stage.space.gravity = 0, -900
 
+    sign = Sign(x=632, y=295)
+    stage.add_actor(sign)
+
     stage.add_actor(Platform(x=280, y=50))
 
     stage.add_actor(Platform(x=700, y=200))
 
     player = Player(input_handler, x=300, y=300)
     stage.add_actor(player)
-
-    sign = Sign(x=632, y=234)
-    stage.add_actor(sign)
 
     props = []
 
@@ -146,10 +156,15 @@ if __name__ == "__main__":
     def separate(arbiter, space, data):
         del props[::]
 
+    def ignore_collision(*args, **kwargs):
+        return False
 
     handler = stage.space.add_collision_handler(CollisionTypes.PLAYER, CollisionTypes.SIGN)
     handler.pre_solve = pre_solve
     handler.separate = separate
+
+    handler = stage.space.add_collision_handler(CollisionTypes.PROP, CollisionTypes.SIGN)
+    handler.pre_solve = ignore_collision
 
 
     @window.event
