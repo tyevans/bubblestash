@@ -147,12 +147,12 @@ class VoxelMap(object):
         grid = self.get_grid_at(x, y)
         grid[x, y] = value
 
-        if x > 0:
-            self.get_grid_at(x - 1, y)
-            if y > 0:
-                self.get_grid_at(x - 1, y - 1)
-        if y > 0:
-            self.get_grid_at(x - 1, y - 1)
+        if x > 0 and x % self.grid_width == 0:
+            self.get_grid_at(x - 1, y).update_sprite_cache()
+            if y > 0 and y % self.grid_height == 0:
+                self.get_grid_at(x - 1, y - 1).update_sprite_cache()
+        if y > 0 and y % self.grid_height == 0:
+            self.get_grid_at(x - 1, y - 1).update_sprite_cache()
 
 
 if __name__ == "__main__":
