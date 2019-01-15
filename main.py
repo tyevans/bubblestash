@@ -1,5 +1,7 @@
 import pyglet
 import pymunk
+from pyglet.gl import glEnable, glTexParameteri, glBlendFunc, GL_SRC_ALPHA, GL_BLEND, GL_TEXTURE_2D, \
+    GL_TEXTURE_MIN_FILTER, GL_TEXTURE_MAG_FILTER, GL_NEAREST, GL_ONE_MINUS_SRC_ALPHA
 from pyglet.window import key, mouse
 
 from bubblestash import actor, controls
@@ -8,17 +10,28 @@ from bubblestash.stage import Stage
 from bubblestash.window import GameWindow
 from quote import SpeechBubble
 
+glEnable(GL_TEXTURE_2D)
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+glEnable(GL_BLEND)
+glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
 
 class CollisionTypes(object):
-    PLATFORM = 0
-    PLAYER = 1
-    PLAYER_BULLET = 2
-    ENEMY_BULLET = 3
-    ENEMY = 4
-    POWERUP = 5
-    PROP = 6
-    SIGN = 7
+    PLATFORM = 0b00000001
+    PLAYER = 0b00000010
+    PLAYER_BULLET = 0b00000100
+    ENEMY_BULLET = 0b00001000
+    ENEMY = 0b00010000
+    POWERUP = 0b00100000
+    PROP = 0b01000000
+    SIGN = 0b10000000
 
+class CollisionMasks(object):
+    PLATFORM = 0b11111110
+    PLAYER = 0b10111001
+    PLAYER_BULLET = 0b01010001
+    ENEMY_BULLET = 0b00000000
 
 class Player(actor.Actor):
     speed = 300
@@ -31,11 +44,11 @@ class Player(actor.Actor):
 
         frames = []
         for i, image in enumerate(player_img_seq):
-            print(image)
             image.anchor_x = 32
             image.anchor_y = 64
             frame = pyglet.image.AnimationFrame(image, .25)
             frames.append(frame)
+        frames.append(pyglet.image.AnimationFrame(player_img_seq[1], .25))
 
         self.animation = pyglet.image.Animation(frames)
 
@@ -156,8 +169,10 @@ if __name__ == "__main__":
     def separate(arbiter, space, data):
         del props[::]
 
+
     def ignore_collision(*args, **kwargs):
         return False
+
 
     handler = stage.space.add_collision_handler(CollisionTypes.PLAYER, CollisionTypes.SIGN)
     handler.pre_solve = pre_solve
@@ -200,5 +215,5 @@ if __name__ == "__main__":
             prop.draw()
 
 
-    pyglet.clock.schedule_interval(update, 1 / 60.0)
+    pyglet.clock.schedule_interval(update, 1 / 144.0)
     pyglet.app.run()

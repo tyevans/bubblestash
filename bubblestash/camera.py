@@ -35,7 +35,7 @@ class Camera(object):
         # glViewport(0, 0, self.width, self.height)
         glMatrixMode(gl.GL_PROJECTION)
         glLoadIdentity()
-        glOrtho(self.left, self.left + self.width, self.bottom, self.bottom + self.height, -1, 1)
+        glOrtho(int(self.left), int(self.left + self.width), int(self.bottom), int(self.bottom + self.height), -1, 1)
         glMatrixMode(gl.GL_MODELVIEW)
 
     def look_at(self, sprite: pyglet.sprite.Sprite):
