@@ -185,8 +185,15 @@ if __name__ == "__main__":
 
     @window.event
     def on_mouse_release(x, y, button, modifiers):
-        _x = (camera.left + x) // 32
-        _y = (camera.bottom + y) // 32
+        _x = int(camera.left + x) // 32
+        _y = int(camera.bottom + y) // 32
+        map[_x, _y] = 1
+
+
+    @window.event
+    def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
+        _x = int(camera.left + x) // 32 + 1
+        _y = int(camera.bottom + y) // 32
         map[_x, _y] = 1
 
 
