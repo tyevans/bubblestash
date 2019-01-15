@@ -3,7 +3,7 @@ from itertools import zip_longest
 import pyglet
 from pyglet.gl import glEnable, glBlendFunc, GL_BLEND, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_TEXTURE_2D, \
     glTexParameteri, GL_TEXTURE_MAG_FILTER, GL_NEAREST, GL_TEXTURE_MIN_FILTER
-from pyglet.window import key
+from pyglet.window import key, mouse
 
 from bubblestash import controls
 from bubblestash.camera import Camera
@@ -194,7 +194,10 @@ if __name__ == "__main__":
     def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
         _x = int(camera.left + x) // 32 + 1
         _y = int(camera.bottom + y) // 32
-        map[_x, _y] = 1
+        if buttons == mouse.LEFT:
+            map[_x, _y] = 1
+        if buttons == mouse.RIGHT:
+            map[_x, _y] = 0
 
 
     img = cv2.imread("./data/images/example_level.png")
