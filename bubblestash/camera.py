@@ -1,7 +1,7 @@
 import pyglet
 from pyglet.gl import glViewport, glMatrixMode, gl, glLoadIdentity, glOrtho, glClearColor, glEnable, GL_BLEND, \
     glBlendFunc, GL_SRC_ALPHA, \
-    GL_ONE_MINUS_SRC_ALPHA
+    GL_ONE_MINUS_SRC_ALPHA, glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST, GL_TEXTURE_MIN_FILTER
 
 
 class Camera(object):
@@ -13,18 +13,20 @@ class Camera(object):
     def __init__(self, left, bottom, width, height):
         self.left = left
         self.bottom = bottom
-        self.init_gl(width, height)
+        self.width = width
+        self.height = height
+        self.init_gl()
 
     def screen_to_world_coords(self, x, y):
         return x + self.left, y + self.bottom
 
-    def init_gl(self, width, height):
+    def init_gl(self):
         # Set clear color
-        self.width = width
-        self.height = height
-        glClearColor(0, 0, 0, 255)
+        glClearColor(255, 255, 255, 255)
 
-        # Set alpha blending
+        glEnable(GL_TEXTURE_2D)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 

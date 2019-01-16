@@ -26,7 +26,6 @@ class SpeechBubble(object):
         max_length = 450
         width = min(len(message) * 18, max_length)
         height = 20 * (len(message) * 22 // max_length + 1)
-        print(height, width)
 
         self.label = Label(text=message, font_name='Press Start 2P', font_size=14, x=x + 40, y=y + 40,
                            color=(0, 0, 0, 255), width=max_length, height=height, multiline=(height > 1),

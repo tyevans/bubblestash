@@ -141,6 +141,7 @@ if __name__ == "__main__":
     })
 
     camera = Camera(0, 0, 1280, 720)
+    camera.init_gl()
     window = GameWindow(width=1280, height=720, camera=camera)
 
     stage = Stage()
