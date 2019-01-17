@@ -7,13 +7,17 @@ EMPTY_VOXEL = (255, 255, 255)
 class Voxel(pyglet.sprite.Sprite):
     _voxels_by_color = {}
     color = None
-    voxels_image = None
-    voxels_sequence = None
+    voxels_image_path = None
 
     def __init__(self, x, y, value=0, shape_value=0, **kwargs):
+        if not hasattr(self.__class__, '_voxels_sequence'):
+            self.__class__._voxels_image = pyglet.resource.image(self.voxels_image_path)
+            self.__class__._voxels_sequence = pyglet.image.ImageGrid(
+                self.__class__._voxels_image, 1, 16)
+
         self.value = value
         self.shape_value = shape_value
-        super().__init__(img=self.voxels_sequence[self.shape_value], x=x * 32, y=y * 32, **kwargs)
+        super().__init__(img=self._voxels_sequence[self.shape_value], x=x * 32, y=y * 32, **kwargs)
 
     @classmethod
     def by_color(cls, color, x, y, value=0, shape_value=0, **kwargs):
@@ -32,22 +36,19 @@ class Voxel(pyglet.sprite.Sprite):
 
 class DirtVoxel(Voxel):
     color = (0, 0, 0)
-    voxels_image = pyglet.resource.image("data/images/voxels/dirt.png")
-    voxels_sequence = pyglet.image.ImageGrid(voxels_image, 1, 16)
+    voxels_image_path = "data/images/voxels/dirt.png"
 
 
 class MarbleVoxel(Voxel):
     color = (18, 56, 94)
-    voxels_image = pyglet.resource.image("data/images/voxels/marble.png")
-    voxels_sequence = pyglet.image.ImageGrid(voxels_image, 1, 16)
+    voxels_image_path = "data/images/voxels/marble.png"
 
 
 class IronVoxel(Voxel):
     color = (128, 128, 128)
-    voxels_image = pyglet.resource.image("data/images/voxels/iron.png")
-    voxels_sequence = pyglet.image.ImageGrid(voxels_image, 1, 16)
+    voxels_image_path = "data/images/voxels/iron.png"
+
 
 class DiamondVoxel(Voxel):
     color = (128, 128, 128)
-    voxels_image = pyglet.resource.image("data/images/voxels/diamond.png")
-    voxels_sequence = pyglet.image.ImageGrid(voxels_image, 1, 16)
+    voxels_image_path = "data/images/voxels/diamond.png"

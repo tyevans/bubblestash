@@ -17,7 +17,7 @@ class VoxelMap(object):
             row = []
             _prev_grid = None
             for i, x in enumerate(range(0, self.width, grid_width)):
-                grid_state = state[y:y+self.grid_height, x:x+self.grid_width]
+                grid_state = state[y:y + self.grid_height, x:x + self.grid_width]
                 grid = VoxelGrid(x, y, self.grid_width, self.grid_height, state=grid_state)
                 if _prev_grid is not None:
                     _prev_grid.neighbor_x = grid

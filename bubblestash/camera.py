@@ -15,6 +15,8 @@ class Camera(object):
         self.bottom = bottom
         self.width = width
         self.height = height
+        self.half_width = self.width / 2
+        self.half_height = self.height / 2
         self.zoom = zoom
         self.init_gl()
 
@@ -28,13 +30,12 @@ class Camera(object):
         scaled_bottom = center_y - scaled_half_height
         scaled_top = center_y + scaled_half_height
 
-        return scaled_left, scaled_right, scaled_bottom, scaled_top
+        return int(scaled_left), int(scaled_right), int(scaled_bottom), int(scaled_top)
 
     def screen_to_world_coords(self, x, y):
         scaled_left, scaled_right, scaled_bottom, scaled_top = self.scaled_bounds()
         scaled_width = scaled_right - scaled_left
         scaled_height = scaled_top - scaled_bottom
-        print(scaled_width, scaled_height)
         world_x = int(x * scaled_width / self.width + scaled_left)
         world_y = int(y * scaled_height / self.height + scaled_bottom)
         return world_x, world_y
@@ -51,6 +52,7 @@ class Camera(object):
 
         # Set viewport
         glViewport(0, 0, self.width, self.height)
+        self._update()
 
     def _update(self):
         # glViewport(0, 0, self.width, self.height)

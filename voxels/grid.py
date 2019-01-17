@@ -39,14 +39,15 @@ class VoxelGrid(object):
         else:
             s_height, s_width = self.state.shape[:2]
             if s_height > _y and s_width > _x:
-                return tuple(self.state[_x, _y].tolist())
+                return tuple(self.state[_y, _x].tolist())
             else:
                 return EMPTY_VOXEL
 
     def update_sprite_cache(self):
         _new_cache = []
-        for y, col in enumerate(self.state, self.y):
-            for x, cell in enumerate(col, self.x):
+        height, width = self.state.shape[:2]
+        for y in range(self.y, height + self.y):
+            for x in range(self.x, width + self.x):
 
                 cell_weights = [
                     (1, (x, y)),
@@ -74,7 +75,7 @@ class VoxelGrid(object):
         x, y = key
         _x = x - self.x
         _y = y - self.y
-        self.state[_x, _y] = value
+        self.state[_y, _x] = value
         self.update_sprite_cache()
 
     def draw(self):

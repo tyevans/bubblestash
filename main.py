@@ -1,7 +1,5 @@
 import pyglet
 import pymunk
-from pyglet.gl import glEnable, glTexParameteri, glBlendFunc, GL_SRC_ALPHA, GL_BLEND, GL_TEXTURE_2D, \
-    GL_TEXTURE_MIN_FILTER, GL_TEXTURE_MAG_FILTER, GL_NEAREST, GL_ONE_MINUS_SRC_ALPHA
 from pyglet.window import key, mouse
 
 from bubblestash import actor, controls
@@ -9,12 +7,6 @@ from bubblestash.camera import Camera
 from bubblestash.stage import Stage
 from bubblestash.window import GameWindow
 from quote import SpeechBubble
-
-glEnable(GL_TEXTURE_2D)
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-glEnable(GL_BLEND)
-glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 
 class CollisionTypes(object):
