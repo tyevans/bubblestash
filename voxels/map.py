@@ -35,21 +35,22 @@ class VoxelMap(object):
         i = y // self.grid_height * (self.width // self.grid_height) + (x // self.grid_width)
         return self._grids[i]
 
-    def draw(self, camera=None):
-        if camera:
-            left = camera.left // self.cell_width
-            right = (camera.left + camera.width) // self.cell_width
-            bottom = camera.bottom // self.cell_height
-            top = (camera.bottom + camera.height) // self.cell_height
+    def draw(self, camera):
+        center_x = camera.left + camera.width // 2
+        center_y = camera.bottom + camera.height // 2
+        scaled_half_width = camera.width * camera.zoom
+        scaled_half_height = camera.height * camera.zoom
 
-            for grid in self._grids:
-                far_x = grid.x + grid.width
-                far_y = grid.y + grid.height
-                if (left <= grid.x <= right or left <= far_x <= right) and \
-                        (bottom <= grid.y <= top or bottom <= far_y <= top):
-                    grid.draw()
-        else:
-            for grid in self._grids:
+        left = int(center_x - scaled_half_width) // 32
+        right = int(center_x + scaled_half_width) // 32
+        bottom = int(center_y - scaled_half_height) // 32
+        top = int(center_y + scaled_half_height) // 32
+
+        for grid in self._grids:
+            far_x = grid.x + grid.width
+            far_y = grid.y + grid.height
+            if (left <= grid.x <= right or left <= far_x <= right) and \
+                    (bottom <= grid.y <= top or bottom <= far_y <= top):
                 grid.draw()
 
     def __setitem__(self, key, value):
@@ -58,8 +59,14 @@ class VoxelMap(object):
         grid[x, y] = value
 
         if x > 0 and x % self.grid_width == 0:
-            self.get_grid_at(x - 1, y).update_sprite_cache()
+            o_grid = self.get_grid_at(x - 1, y)
+            if o_grid is not grid:
+                o_grid.update_sprite_cache()
             if y > 0 and y % self.grid_height == 0:
-                self.get_grid_at(x - 1, y - 1).update_sprite_cache()
+                o_grid = self.get_grid_at(x - 1, y - 1)
+                if o_grid is not grid:
+                    o_grid.update_sprite_cache()
         if y > 0 and y % self.grid_height == 0:
-            self.get_grid_at(x - 1, y - 1).update_sprite_cache()
+            o_grid = self.get_grid_at(x - 1, y - 1)
+            if o_grid is not grid:
+                o_grid.update_sprite_cache()

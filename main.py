@@ -27,11 +27,13 @@ class CollisionTypes(object):
     PROP = 0b01000000
     SIGN = 0b10000000
 
+
 class CollisionMasks(object):
     PLATFORM = 0b11111110
     PLAYER = 0b10111001
     PLAYER_BULLET = 0b01010001
     ENEMY_BULLET = 0b00000000
+
 
 class Player(actor.Actor):
     speed = 300
@@ -205,6 +207,14 @@ if __name__ == "__main__":
             # shape = stage.space.point_query_nearest((_x, _y), pymunk.inf, pymunk.ShapeFilter())
             # print(shape)
             # stage.space.gravity = 0, -stage.space.gravity[1]
+
+
+    @window.event
+    def on_mouse_scroll(x, y, scroll_x, scroll_y):
+        min_zoom = 0.8
+        max_zoom = 1.2
+        zoom = max(min(camera.zoom + (scroll_y / 50), max_zoom), min_zoom)
+        camera.update(zoom=zoom)
 
 
     def update(dt):

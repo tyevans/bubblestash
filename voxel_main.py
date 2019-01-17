@@ -1,4 +1,3 @@
-import cv2
 import pyglet
 from pyglet.window import key, mouse
 
@@ -7,7 +6,7 @@ from bubblestash.camera import Camera
 from bubblestash.window import GameWindow
 from voxels.map import VoxelMap
 from voxels.perlin import generate_random_map
-from voxels.voxel import EMPTY_VOXEL, DirtVoxel, MarbleVoxel, DiamondVoxel, IronVoxel
+from voxels.voxel import EMPTY_VOXEL, DirtVoxel
 
 if __name__ == "__main__":
 
@@ -34,11 +33,11 @@ if __name__ == "__main__":
         return input_handler.on_key_release(symbol, modifiers)
 
 
-    map_state = generate_random_map(32, 32, {
+    map_state = generate_random_map(64, 64, {
         DirtVoxel: 0.8,
-        MarbleVoxel: 0.1,
-        DiamondVoxel: 0.005,
-        IronVoxel: 0.06
+        # MarbleVoxel: 0.1,
+        # DiamondVoxel: 0.001,
+        # IronVoxel: 0.06
     })
     # map_state = cv2.imread("./data/images/example_level.png")
     map = VoxelMap(state=map_state)
@@ -46,22 +45,32 @@ if __name__ == "__main__":
 
     @window.event
     def on_mouse_release(x, y, button, modifiers):
-        _x = int(camera.left + x) // 32
-        _y = int(camera.bottom + y) // 32
+        _x, _y = camera.screen_to_world_coords(x, y)
+        x = _x // 32
+        y =_y // 32
         if button == mouse.LEFT:
-            map[_x, _y] = (0, 0, 0)
+            map[x, y] = (0, 0, 0)
         if button == mouse.RIGHT:
-            map[_x, _y] = EMPTY_VOXEL
+            map[x, y] = EMPTY_VOXEL
 
 
     @window.event
     def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
-        _x = int(camera.left + x) // 32
-        _y = int(camera.bottom + y) // 32
+        _x, _y = camera.screen_to_world_coords(x, y)
+        x = _x // 32
+        y =_y // 32
         if buttons == mouse.LEFT:
-            map[_x, _y] = (0, 0, 0)
+            map[x, y] = (0, 0, 0)
         if buttons == mouse.RIGHT:
-            map[_x, _y] = EMPTY_VOXEL
+            map[x, y] = EMPTY_VOXEL
+
+
+    @window.event
+    def on_mouse_scroll(x, y, scroll_x, scroll_y):
+        min_zoom = 0.5
+        max_zoom = 2.0
+        zoom = max(min(camera.zoom + (scroll_y / 50), max_zoom), min_zoom)
+        camera.update(zoom=zoom)
 
 
     def update(dt):
