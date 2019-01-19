@@ -1,7 +1,5 @@
 import pyglet
-from pyglet.gl import glViewport, glMatrixMode, gl, glLoadIdentity, glOrtho, glClearColor, glEnable, GL_BLEND, \
-    glBlendFunc, GL_SRC_ALPHA, \
-    GL_ONE_MINUS_SRC_ALPHA, glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST, GL_TEXTURE_MIN_FILTER
+from pyglet import gl
 
 
 class Camera(object):
@@ -42,31 +40,33 @@ class Camera(object):
 
     def init_gl(self):
         # Set clear color
-        glClearColor(255, 255, 255, 255)
+        gl.glClearColor(0, 0, 0, 255)
 
-        glEnable(GL_TEXTURE_2D)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        gl.glEnable(gl.GL_TEXTURE_2D)
+        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
+        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST)
+        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_CLAMP_TO_EDGE)
+        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_CLAMP_TO_EDGE)
+        gl.glEnable(gl.GL_BLEND)
+        gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
 
         # Set viewport
-        glViewport(0, 0, self.width, self.height)
-        self._update()
+        # gl.glViewport(0, 0, self.width, self.height)
+        # self._update()
 
     def _update(self):
         # glViewport(0, 0, self.width, self.height)
-        glMatrixMode(gl.GL_PROJECTION)
-        glLoadIdentity()
+        gl.glMatrixMode(gl.GL_PROJECTION)
+        gl.glLoadIdentity()
         scaled_left, scaled_right, scaled_bottom, scaled_top = self.scaled_bounds()
 
-        glOrtho(
+        gl.glOrtho(
             scaled_left,
             scaled_right,
             scaled_bottom,
             scaled_top,
             -1, 1)
-        glMatrixMode(gl.GL_MODELVIEW)
+        gl.glMatrixMode(gl.GL_MODELVIEW)
 
     def look_at(self, sprite: pyglet.sprite.Sprite):
         self.left = int(sprite.x - self.width // 2)

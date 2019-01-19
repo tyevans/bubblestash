@@ -1,7 +1,7 @@
 import pyglet
 from pyglet import font
 from pyglet.gl import glEnable, glBindTexture, glPushAttrib, GL_COLOR_BUFFER_BIT, GL_BLEND, glTexParameteri, \
-    GL_TEXTURE_MAG_FILTER, GL_NEAREST, glBlendFunc
+    GL_TEXTURE_MAG_FILTER, GL_NEAREST
 from pyglet.text import Label
 
 font.add_file("./data/fonts/PressStart2P-Regular.ttf")

@@ -50,5 +50,5 @@ class IronVoxel(Voxel):
 
 
 class DiamondVoxel(Voxel):
-    color = (128, 128, 128)
+    color = (128, 128, 100)
     voxels_image_path = "data/images/voxels/diamond.png"

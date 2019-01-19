@@ -1,3 +1,4 @@
+import cv2
 import pyglet
 from pyglet.window import key, mouse
 
@@ -6,6 +7,7 @@ from bubblestash.camera import Camera
 from bubblestash.window import GameWindow
 from voxels.map import VoxelMap
 from voxels.perlin import generate_random_map
+from voxels.store import VoxelGridStore
 from voxels.voxel import EMPTY_VOXEL, DirtVoxel, MarbleVoxel, DiamondVoxel, IronVoxel
 
 if __name__ == "__main__":
@@ -13,6 +15,7 @@ if __name__ == "__main__":
     CAMERA_MOVE_SPEED = 300
 
     camera = Camera(0, 0, 1280, 720)
+    camera.init_gl()
     window = GameWindow(width=1280, height=720, camera=camera)
 
     input_handler = controls.KeyboardInputHandler({
@@ -20,6 +23,7 @@ if __name__ == "__main__":
         key.LEFT: "CAMERA_LEFT",
         key.DOWN: "CAMERA_DOWN",
         key.RIGHT: "CAMERA_RIGHT",
+        key.LSHIFT: "CAMERA_ZOOM_MOD"
     })
 
 
@@ -33,14 +37,25 @@ if __name__ == "__main__":
         return input_handler.on_key_release(symbol, modifiers)
 
 
-    map_state = generate_random_map(64, 64, {
-        DirtVoxel: 0.8,
+    # Different ways to generate maps
+
+    # map_state = generate_random_map(128, 128, {
+    #     DirtVoxel: 0.8,
+    #     MarbleVoxel: 0.1,
+    #     DiamondVoxel: 0.001,
+    #     IronVoxel: 0.06
+    # })
+    # map = VoxelMap(state=map_state)
+
+    # map_state = cv2.imread("./data/images/example_level.png")
+    # map = VoxelMap(state=map_state)
+
+    map = VoxelGridStore(known_voxels={
+        DirtVoxel: 1.0,
         MarbleVoxel: 0.1,
         DiamondVoxel: 0.001,
         IronVoxel: 0.06
-    })
-    # map_state = cv2.imread("./data/images/example_level.png")
-    map = VoxelMap(state=map_state)
+    }, base_voxel=DirtVoxel)
 
 
     @window.event
@@ -67,12 +82,18 @@ if __name__ == "__main__":
 
     @window.event
     def on_mouse_scroll(x, y, scroll_x, scroll_y):
-        min_zoom = 0.8
-        max_zoom = 1.2
-        zoom = max(min(camera.zoom + (scroll_y / 50), max_zoom), min_zoom)
-        camera.update(zoom=zoom)
+        if input_handler.key_down("CAMERA_ZOOM_MOD"):
+            min_zoom = 0.8
+            max_zoom = 1.2
+            zoom = max(min(camera.zoom + (scroll_y / 50), max_zoom), min_zoom)
+            camera.update(zoom=zoom)
 
 
+    # label = FloatingLabel(camera, text="Ready!", font_name='Press Start 2P', font_size=64, x=0, y=0,
+    #                       color=(0, 0, 0, 255), anchor_x='left',
+    #                       anchor_y='bottom')
+
+    camera.init_gl()
     def update(dt):
         delta_left = 0
         delta_bottom = 0
@@ -91,9 +112,9 @@ if __name__ == "__main__":
                 left=camera.left + delta_left,
                 bottom=camera.bottom + delta_bottom
             )
-
         window.clear()
         map.draw(camera)
+        # label.draw()
 
 
     pyglet.clock.schedule_interval(update, 1 / 144.0)

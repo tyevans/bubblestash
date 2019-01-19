@@ -50,8 +50,13 @@ def gradient(h, x, y):
     return g[:, :, 0] * x + g[:, :, 1] * y
 
 
-def generate_random_map(width, height, voxels):
-    map_img = np.ones((width, height, 3)) * EMPTY_VOXEL
+def generate_random_map(width, height, voxels, base_voxel=None):
+    map_img = np.ones((width, height, 3))
+    if base_voxel:
+        map_img *= base_voxel.color
+    else:
+        map_img *= EMPTY_VOXEL
+
     for voxel_cls, scarcity in sorted(voxels.items(), key=itemgetter(1), reverse=True):
         lin_w = np.linspace(0, 5, width, endpoint=False)
         lin_h = np.linspace(0, 5, height, endpoint=False)
@@ -60,14 +65,14 @@ def generate_random_map(width, height, voxels):
         ret, thresh = cv2.threshold(img, 255 - 255 * scarcity, 255, cv2.THRESH_BINARY)
         map_img[thresh == 255] = voxel_cls.color
 
-    lin_w = np.linspace(0, 5, width, endpoint=False)
-    lin_h = np.linspace(0, 5, height, endpoint=False)
-    x, y = np.meshgrid(lin_w, lin_h)
-    img = (perlin(x, y, seed=random.randint(0, 2 ** 32 - 1)) * 255).astype(np.uint8)
-    ret, thresh = cv2.threshold(img, 0.1, 240, cv2.THRESH_BINARY_INV)
+    # lin_w = np.linspace(0, 5, width, endpoint=False)
+    # lin_h = np.linspace(0, 5, height, endpoint=False)
+    # x, y = np.meshgrid(lin_w, lin_h)
+    # img = (perlin(x, y, seed=random.randint(0, 2 ** 32 - 1)) * 255).astype(np.uint8)
+    # ret, thresh = cv2.threshold(img, 0.1, 240, cv2.THRESH_BINARY_INV)
     # cv2.imshow("frame", img)
     # cv2.imshow("thresh", thresh)
     # cv2.waitKey(0)
-    map_img[thresh == 255] = EMPTY_VOXEL
+    # map_img[thresh == 255] = EMPTY_VOXEL
 
     return map_img
