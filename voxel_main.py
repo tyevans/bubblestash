@@ -9,7 +9,18 @@ from bubblestash.stage import Stage
 from bubblestash.window import GameWindow
 from voxels.map import VoxelMap
 from voxels.perlin import generate_random_map
-from voxels.voxel import EMPTY_VOXEL, DirtVoxel, MarbleVoxel, DiamondVoxel, IronVoxel
+from voxels.voxel import EMPTY_VOXEL, DiamondVoxel, DirtVoxel, MarbleVoxel, IronVoxel
+
+
+class CollisionTypes(object):
+    PLATFORM = 0b00000001
+    PLAYER = 0b00000010
+    PLAYER_BULLET = 0b00000100
+    ENEMY_BULLET = 0b00001000
+    ENEMY = 0b00010000
+    POWERUP = 0b00100000
+    PROP = 0b01000000
+    SIGN = 0b10000000
 
 
 class Boulder(actor.Actor):
@@ -28,24 +39,80 @@ class Boulder(actor.Actor):
         super().__init__(img=circle_image, body=body, shape=poly, *args, **kwargs)
 
 
+class Player(actor.Actor):
+    speed = 300
+    jump_speed = 3000
+    jump_duration = 0.2
+
+    def __init__(self, input_handler, *args, **kwargs):
+        player_image = pyglet.resource.image('data/images/smallest_pixel/Smallest Pixel - Run & Gun.png')
+        player_img_seq = pyglet.image.ImageGrid(player_image, 1, 7)
+
+        frames = []
+        for i, image in enumerate(player_img_seq):
+            image.anchor_x = 8
+            image.anchor_y = 8
+            frame = pyglet.image.AnimationFrame(image, .1)
+            frames.append(frame)
+
+        self.animation = pyglet.image.Animation(frames)
+
+        self.jump_time = 0
+        self.input_handler = input_handler
+        body = pymunk.Body(mass=5, moment=10000)
+        body.center_of_gravity = (.5, .5)
+        poly = pymunk.Poly.create_box(body, size=(4, 16))
+        poly.elasticity = .3
+        poly.friction = 0.1
+        poly.collision_type = CollisionTypes.PLAYER
+        super().__init__(img=self.animation, body=body, shape=poly, *args, **kwargs)
+
+    def act(self, dt):
+        self.body.angle = 0
+        if self.input_handler.key_down("LEFT"):
+            if self.scale_x > 0:
+                self.scale_x *= -1
+            self.body.velocity -= (self.speed * dt, 0)
+
+        if self.input_handler.key_down("RIGHT"):
+            if self.scale_x < 0:
+                self.scale_x *= -1
+            self.body.velocity += (self.speed * dt, 0)
+
+        if self.input_handler.key_down("JUMP"):
+            interval = min(dt, self.jump_time)
+            if interval:
+                self.jump_time -= interval
+                self.body.velocity += (0, self.jump_speed * dt)
+        else:
+            self.jump_time = self.jump_duration
+        super().act(dt)
+
+
 if __name__ == "__main__":
 
     CAMERA_MOVE_SPEED = 300
 
-    camera = Camera(0, 0, 1280, 720)
+    camera = Camera(0, 0, 1920, 1080)
     camera.init_gl()
-    window = GameWindow(width=1280, height=720, camera=camera)
+    window = GameWindow(fullscreen=True, camera=camera)
 
     stage = Stage()
     space = stage.space
     stage.space.gravity = 0, -900
 
     input_handler = controls.KeyboardInputHandler({
+        key.W: "UP",
+        key.A: "LEFT",
+        key.S: "DOWN",
+        key.D: "RIGHT",
+        key.SPACE: "JUMP",
         key.UP: "CAMERA_UP",
         key.LEFT: "CAMERA_LEFT",
         key.DOWN: "CAMERA_DOWN",
         key.RIGHT: "CAMERA_RIGHT",
-        key.LSHIFT: "CAMERA_ZOOM_MOD"
+        key.LSHIFT: "CAMERA_ZOOM_MOD",
+        key.ESCAPE: "EXIT_GAME"
     })
 
 
@@ -60,13 +127,16 @@ if __name__ == "__main__":
 
 
     map_state = generate_random_map(128, 128, {
-        # DirtVoxel: 0.8,
-        # MarbleVoxel: 0.2,
-        DiamondVoxel: 0.8,
-        # IronVoxel: 0.005
+        DirtVoxel: 0.8,
+        MarbleVoxel: 0.2,
+        DiamondVoxel: 0.01,
+        IronVoxel: 0.005
     })
     cv2.imwrite("./data/new_level.png", map_state)
     map = VoxelMap(state=map_state, space=space)
+
+    player = Player(input_handler, x=1024, y=4096)
+    stage.add_actor(player)
 
 
     # image based loading
@@ -127,21 +197,25 @@ if __name__ == "__main__":
         delta_left = 0
         delta_bottom = 0
 
-        if input_handler.key_down("CAMERA_LEFT"):
-            delta_left -= dt * CAMERA_MOVE_SPEED
-        if input_handler.key_down("CAMERA_RIGHT"):
-            delta_left += dt * CAMERA_MOVE_SPEED
-        if input_handler.key_down("CAMERA_UP"):
-            delta_bottom += dt * CAMERA_MOVE_SPEED
-        if input_handler.key_down("CAMERA_DOWN"):
-            delta_bottom -= dt * CAMERA_MOVE_SPEED
+        # if input_handler.key_down("CAMERA_LEFT"):
+        #     delta_left -= dt * CAMERA_MOVE_SPEED
+        # if input_handler.key_down("CAMERA_RIGHT"):
+        #     delta_left += dt * CAMERA_MOVE_SPEED
+        # if input_handler.key_down("CAMERA_UP"):
+        #     delta_bottom += dt * CAMERA_MOVE_SPEED
+        # if input_handler.key_down("CAMERA_DOWN"):
+        #     delta_bottom -= dt * CAMERA_MOVE_SPEED
+        #
+        # if delta_left or delta_bottom:
+        #     camera.update(
+        #         left=camera.left + delta_left,
+        #         bottom=camera.bottom + delta_bottom
+        #     )
 
-        if delta_left or delta_bottom:
-            camera.update(
-                left=camera.left + delta_left,
-                bottom=camera.bottom + delta_bottom
-            )
+        if input_handler.key_down("EXIT_GAME"):
+            exit(0)
         stage.act(dt)
+        camera.look_at(player)
         window.clear()
         map.draw(camera)
         stage.draw()

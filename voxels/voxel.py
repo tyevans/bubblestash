@@ -136,8 +136,8 @@ class Voxel(Actor):
             vertices = []
 
         poly = pymunk.Poly(body, vertices=vertices)
-        poly.elasticity = .9
-        poly.friction = 0.8
+        poly.elasticity = .2
+        poly.friction = 0.85
         super().__init__(body=body, shape=poly, img=self._voxels_sequence[self.shape_value], x=x * 32, y=y * 32,
                          **kwargs)
 

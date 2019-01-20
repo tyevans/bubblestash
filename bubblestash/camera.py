@@ -40,7 +40,7 @@ class Camera(object):
 
     def init_gl(self):
         # Set clear color
-        gl.glClearColor(0, 0, 0, 255)
+        gl.glClearColor(11, 15, 27, 255)
 
         gl.glEnable(gl.GL_TEXTURE_2D)
         gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
@@ -59,7 +59,6 @@ class Camera(object):
         gl.glMatrixMode(gl.GL_PROJECTION)
         gl.glLoadIdentity()
         scaled_left, scaled_right, scaled_bottom, scaled_top = self.scaled_bounds()
-
         gl.glOrtho(
             scaled_left,
             scaled_right,

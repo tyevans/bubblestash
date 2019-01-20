@@ -33,13 +33,13 @@ class Player(actor.Actor):
     jump_duration = 0.2
 
     def __init__(self, input_handler, *args, **kwargs):
-        player_image = pyglet.resource.image('data/images/player.png')
-        player_img_seq = pyglet.image.ImageGrid(player_image, 1, 3)
+        player_image = pyglet.resource.image('data/images/smallest_pixel/Smallest Pixel - Run & Gun.png')
+        player_img_seq = pyglet.image.ImageGrid(player_image, 1, 7)
 
         frames = []
         for i, image in enumerate(player_img_seq):
-            image.anchor_x = 32
-            image.anchor_y = 64
+            image.anchor_x = 8
+            image.anchor_y = 0
             frame = pyglet.image.AnimationFrame(image, .25)
             frames.append(frame)
         frames.append(pyglet.image.AnimationFrame(player_img_seq[1], .25))
