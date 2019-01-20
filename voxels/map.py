@@ -3,12 +3,13 @@ from voxels.grid import VoxelGrid
 
 class VoxelMap(object):
 
-    def __init__(self, state, grid_width=8, grid_height=8, cell_height=32, cell_width=32):
+    def __init__(self, state, space, grid_width=8, grid_height=8, cell_height=32, cell_width=32):
         self.height, self.width = state.shape[:2]
         self.grid_width = grid_width
         self.grid_height = grid_height
         self.cell_width = cell_width
         self.cell_height = cell_height
+        self.space = space
 
         self._grids = []
 
@@ -18,7 +19,7 @@ class VoxelMap(object):
             _prev_grid = None
             for i, x in enumerate(range(0, self.width, grid_width)):
                 grid_state = state[y:y + self.grid_height, x:x + self.grid_width]
-                grid = VoxelGrid(x, y, self.grid_width, self.grid_height, state=grid_state)
+                grid = VoxelGrid(x, y, self.grid_width, self.grid_height, space=self.space, state=grid_state)
                 if _prev_grid is not None:
                     _prev_grid.neighbor_x = grid
                 if _prev_row is not None:
@@ -60,13 +61,10 @@ class VoxelMap(object):
 
         if x > 0 and x % self.grid_width == 0:
             o_grid = self.get_grid_at(x - 1, y)
-            if o_grid is not grid:
-                o_grid.update_sprite_cache()
+            o_grid._dirty = True
             if y > 0 and y % self.grid_height == 0:
                 o_grid = self.get_grid_at(x - 1, y - 1)
-                if o_grid is not grid:
-                    o_grid.update_sprite_cache()
+                o_grid._dirty = True
         if y > 0 and y % self.grid_height == 0:
             o_grid = self.get_grid_at(x - 1, y - 1)
-            if o_grid is not grid:
-                o_grid.update_sprite_cache()
+            o_grid._dirty = True

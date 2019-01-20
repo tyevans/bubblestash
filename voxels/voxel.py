@@ -1,10 +1,13 @@
 import numpy as np
 import pyglet
+import pymunk
+
+from bubblestash.actor import Actor
 
 EMPTY_VOXEL = (255, 255, 255)
 
 
-class Voxel(pyglet.sprite.Sprite):
+class Voxel(Actor):
     _voxels_by_color = {}
     color = None
     voxels_image_path = None
@@ -17,7 +20,126 @@ class Voxel(pyglet.sprite.Sprite):
 
         self.value = value
         self.shape_value = shape_value
-        super().__init__(img=self._voxels_sequence[self.shape_value], x=x * 32, y=y * 32, **kwargs)
+
+        body = pymunk.Body(body_type=pymunk.Body.STATIC)
+
+        if shape_value == 1:
+            vertices = [
+                (0, 0),
+                (16, 0),
+                (0, 16),
+            ]
+        elif shape_value == 2:
+            vertices = [
+                (16, 0),
+                (32, 0),
+                (32, 16),
+            ]
+        elif shape_value == 3:
+            vertices = [
+                (0, 0),
+                (32, 0),
+                (32, 16),
+                (0, 16),
+            ]
+        elif shape_value == 4:
+            vertices = [
+                (16, 32),
+                (32, 16),
+                (32, 32),
+            ]
+        elif shape_value == 5:
+            vertices = [
+                (0, 0),
+                (16, 0),
+                (32, 16),
+                (32, 32),
+                (16, 32),
+                (0, 16)
+            ]
+        elif shape_value == 6:
+            vertices = [
+                (16, 0),
+                (32, 0),
+                (32, 32),
+                (16, 32)
+            ]
+        elif shape_value == 7:
+            vertices = [
+                (0, 0),
+                (32, 0),
+                (32, 32),
+                (16, 32),
+                (0, 16),
+            ]
+        elif shape_value == 8:
+            vertices = [
+                (0, 16),
+                (16, 32),
+                (32, 32)
+            ]
+        elif shape_value == 9:
+            vertices = [
+                (0, 0),
+                (16, 0),
+                (16, 32),
+                (0, 32)
+            ]
+        elif shape_value == 10:
+            vertices = [
+                (0, 16),
+                (16, 0),
+                (32, 0),
+                (32, 16),
+                (16, 32),
+                (0, 32)
+            ]
+        elif shape_value == 11:
+            vertices = [
+                (0, 0),
+                (32, 0),
+                (32, 16),
+                (16, 32),
+                (0, 32)
+            ]
+        elif shape_value == 12:
+            vertices = [
+                (0, 16),
+                (32, 16),
+                (32, 32),
+                (0, 32)
+            ]
+        elif shape_value == 13:
+            vertices = [
+                (0, 0),
+                (16, 0),
+                (32, 16),
+                (32, 32),
+                (0, 32)
+            ]
+        elif shape_value == 14:
+            vertices = [
+                (16, 0),
+                (32, 0),
+                (32, 32),
+                (0, 32),
+                (0, 16)
+            ]
+        elif shape_value == 15:
+            vertices = [
+                (0, 0),
+                (32, 0),
+                (32, 32),
+                (0, 32)
+            ]
+        else:
+            vertices = []
+
+        poly = pymunk.Poly(body, vertices=vertices)
+        poly.elasticity = .9
+        poly.friction = 0.8
+        super().__init__(body=body, shape=poly, img=self._voxels_sequence[self.shape_value], x=x * 32, y=y * 32,
+                         **kwargs)
 
     @classmethod
     def by_color(cls, color, x, y, value=0, shape_value=0, **kwargs):

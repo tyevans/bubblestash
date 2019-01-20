@@ -8,14 +8,14 @@ from voxels.voxel import EMPTY_VOXEL, Voxel
 
 class VoxelGrid(object):
 
-    def __init__(self, x, y, width, height, state=None):
+    def __init__(self, x, y, width, height, space, state=None):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
+        self.space = space
         self.state = state if state is not None else (np.ones(self.width, self.height, 3) * EMPTY_VOXEL)
         self._sprite_batch = pyglet.graphics.Batch()
-        self._voxel_weight_cache = {}
         self._sprite_cache = []
         self._dirty = True
 
@@ -44,10 +44,13 @@ class VoxelGrid(object):
     def update_sprite_cache(self):
         self._dirty = False
         height, width = self.state.shape[:2]
+        for instances in self._sprite_cache:
+            for inst in instances:
+                self.space.remove(inst.body, inst.shape)
+                inst.delete()
         _new_cache = []
         for y in range(self.y, height + self.y):
             for x in range(self.x, width + self.x):
-
                 cell_weights = [
                     (1, (x, y)),
                     (2, (x + 1, y)),
@@ -61,10 +64,10 @@ class VoxelGrid(object):
                     if value != EMPTY_VOXEL:
                         shape_values[value] += weight
                 total = sum(shape_values.values())
-                self._voxel_weight_cache[(x, y)] = total
                 instances = []
                 for value, weight in sorted(shape_values.items(), reverse=True):
                     inst = Voxel.by_color(value, x=x, y=y, value=value, shape_value=total, batch=self._sprite_batch)
+                    self.space.add(inst.body, inst.shape)
                     total -= weight
                     if inst:
                         instances.append(inst)
@@ -77,7 +80,6 @@ class VoxelGrid(object):
         _x = x - self.x
         _y = y - self.y
         self.state[_y, _x] = value
-        self.update_sprite_cache()
 
     def draw(self):
         if self._dirty:

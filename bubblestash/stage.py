@@ -14,6 +14,10 @@ class Stage(object):
         self.space.add(actor.body, actor.shape)
         self.actors.append(actor)
 
+    def remove_actor(self, actor):
+        self.space.remove(actor.body, actor.shape)
+        self.actors.remove(actor)
+
     def act(self, dt):
         self.space.step(dt)
         for actor in self.actors:
