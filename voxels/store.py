@@ -24,8 +24,10 @@ class VoxelGridProxy(VoxelGrid):
 
 class VoxelGridStore(object):
 
-    def __init__(self, state_dir="./data/state", grid_width=8, grid_height=8, known_voxels=None, base_voxel=None):
+    def __init__(self, space, state_dir="./data/state", grid_width=8, grid_height=8, known_voxels=None,
+                 base_voxel=None):
         self._cache = {}
+        self.space = space
         self.state_dir = state_dir
         self.grid_width = grid_width
         self.grid_height = grid_height
@@ -48,7 +50,7 @@ class VoxelGridStore(object):
                 state = self.gen_state(x, y)
                 self[x, y] = state
 
-            grid = VoxelGridProxy(store=self, x=x, y=y, width=self.grid_width, height=self.grid_height, state=state)
+            grid = VoxelGridProxy(store=self, x=x, y=y, width=self.grid_width, height=self.grid_height, state=state, space=self.space)
             self._cache[(x, y)] = grid
         return grid
 

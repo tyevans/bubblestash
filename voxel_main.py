@@ -1,3 +1,5 @@
+import numpy as np
+
 import cv2
 import pyglet
 import pymunk
@@ -9,6 +11,7 @@ from bubblestash.stage import Stage
 from bubblestash.window import GameWindow
 from voxels.map import VoxelMap
 from voxels.perlin import generate_random_map
+from voxels.store import VoxelGridStore
 from voxels.voxel import EMPTY_VOXEL, DiamondVoxel, DirtVoxel, MarbleVoxel, IronVoxel
 
 
@@ -40,7 +43,7 @@ class Boulder(actor.Actor):
 
 
 class Player(actor.Actor):
-    speed = 300
+    speed = 800
     jump_speed = 3000
     jump_duration = 0.2
 
@@ -52,7 +55,7 @@ class Player(actor.Actor):
         for i, image in enumerate(player_img_seq):
             image.anchor_x = 8
             image.anchor_y = 8
-            frame = pyglet.image.AnimationFrame(image, .1)
+            frame = pyglet.image.AnimationFrame(image, .08)
             frames.append(frame)
 
         self.animation = pyglet.image.Animation(frames)
@@ -63,7 +66,7 @@ class Player(actor.Actor):
         body.center_of_gravity = (.5, .5)
         poly = pymunk.Poly.create_box(body, size=(4, 16))
         poly.elasticity = .3
-        poly.friction = 0.1
+        poly.friction = 0.85
         poly.collision_type = CollisionTypes.PLAYER
         super().__init__(img=self.animation, body=body, shape=poly, *args, **kwargs)
 
@@ -95,7 +98,7 @@ if __name__ == "__main__":
 
     camera = Camera(0, 0, 1920, 1080)
     camera.init_gl()
-    window = GameWindow(fullscreen=True, camera=camera)
+    window = GameWindow(width=1920, height=1080, camera=camera)
 
     stage = Stage()
     space = stage.space
@@ -126,30 +129,33 @@ if __name__ == "__main__":
         return input_handler.on_key_release(symbol, modifiers)
 
 
-    map_state = generate_random_map(128, 128, {
-        DirtVoxel: 0.8,
-        MarbleVoxel: 0.2,
-        DiamondVoxel: 0.01,
-        IronVoxel: 0.005
-    })
-    cv2.imwrite("./data/new_level.png", map_state)
-    map = VoxelMap(state=map_state, space=space)
+    # maps = [generate_random_map(64, 64, {
+    #     DirtVoxel: 0.8,
+    #     MarbleVoxel: 0.2,
+        # DiamondVoxel: 0.8,
+        # IronVoxel: 0.005
+    # }) for _ in range(10)]
+    #
+    # map_state = np.hstack(maps)
+    # cv2.imwrite("./data/new_level.png", map_state)
+    # map_state = cv2.imread("./data/new_level.png")
+    # map = VoxelMap(state=map_state, space=space)
 
-    player = Player(input_handler, x=1024, y=4096)
+    player = Player(input_handler, x=1024, y=2060)
     stage.add_actor(player)
 
 
     # image based loading
-    # map_state = cv2.imread("./data/images/example_level.png")
-    # map = VoxelMap(state=map_state)
+    map_state = cv2.imread("./data/images/example_level.png")
+    map = VoxelMap(state=map_state, space=space)
 
     # Infinite random map
-    # map = VoxelGridStore(known_voxels={
+    # map = VoxelGridStore(space=space, known_voxels={
     #     DirtVoxel: 1.0,
     #     MarbleVoxel: 0.1,
     #     DiamondVoxel: 0.001,
     #     IronVoxel: 0.06
-    # }, base_voxel=DirtVoxel)
+    # }, grid_width=32, grid_height=32)
 
     @window.event
     def on_mouse_release(x, y, button, modifiers):
@@ -180,8 +186,8 @@ if __name__ == "__main__":
     @window.event
     def on_mouse_scroll(x, y, scroll_x, scroll_y):
         if input_handler.key_down("CAMERA_ZOOM_MOD"):
-            min_zoom = 0.5
-            max_zoom = 2.0
+            min_zoom = 0.1
+            max_zoom = 5.0
             zoom = max(min(camera.zoom + (scroll_y / 10), max_zoom), min_zoom)
             camera.update(zoom=zoom)
 

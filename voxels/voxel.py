@@ -21,7 +21,7 @@ class Voxel(Actor):
         self.value = value
         self.shape_value = shape_value
 
-        body = pymunk.Body(body_type=pymunk.Body.STATIC)
+        body = pymunk.Body(body_type=pymunk.Body.STATIC, moment=10000)
 
         if shape_value == 1:
             vertices = [
@@ -74,9 +74,9 @@ class Voxel(Actor):
             ]
         elif shape_value == 8:
             vertices = [
+                (0, 32),
                 (0, 16),
-                (16, 32),
-                (32, 32)
+                (16, 32)
             ]
         elif shape_value == 9:
             vertices = [

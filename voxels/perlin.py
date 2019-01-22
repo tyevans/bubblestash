@@ -52,7 +52,7 @@ def gradient(h, x, y):
 
 def generate_random_map(width, height, voxels, base_voxel=None):
     map_img = np.ones((width, height, 3))
-    if base_voxel:
+    if base_voxel and base_voxel != EMPTY_VOXEL:
         map_img *= base_voxel.color
     else:
         map_img *= EMPTY_VOXEL
