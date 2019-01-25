@@ -7,10 +7,15 @@ class Camera(object):
     bottom = 0
     width = 640
     height = 480
+    follow_speed = 300
 
     def __init__(self, left, bottom, width, height, zoom=1.):
         self.left = left
         self.bottom = bottom
+
+        self.target_left = left
+        self.target_bottom = bottom
+
         self.width = width
         self.height = height
         self.half_width = self.width / 2
@@ -40,7 +45,7 @@ class Camera(object):
 
     def init_gl(self):
         # Set clear color
-        gl.glClearColor(11, 15, 27, 255)
+        gl.glClearColor(.3, .3, .3, 1.)
 
         gl.glEnable(gl.GL_TEXTURE_2D)
         gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
@@ -67,14 +72,19 @@ class Camera(object):
             -1, 1)
         gl.glMatrixMode(gl.GL_MODELVIEW)
 
-    def look_at(self, sprite: pyglet.sprite.Sprite):
-        self.left = int(sprite.x - self.width // 2)
-        self.bottom = int(sprite.y - self.height // 2)
-        self._update()
+    def look_at(self, sprite: pyglet.sprite.Sprite, animate=True):
+        if animate:
+            left = int(sprite.x - self.width // 2)
+            bottom = int(sprite.y - self.height // 2)
+            self.update(left=left, bottom=bottom)
+        else:
+            self.left = int(sprite.x - self.width // 2)
+            self.bottom = int(sprite.y - self.height // 2)
+            self._update()
 
     def update(self, left=None, bottom=None, width=None, height=None, zoom=None):
-        self.left = left or self.left
-        self.bottom = bottom or self.bottom
+        self.target_left = left or self.left
+        self.target_bottom = bottom or self.bottom
         if width or height:
             self.width = width or self.width
             self.height = height or self.height
@@ -82,3 +92,31 @@ class Camera(object):
             self.half_height = self.height / 2
         self.zoom = zoom or self.zoom
         self._update()
+
+    def act(self, dt):
+        dirty = False
+        if self.target_left != self.left:
+            dirty = True
+            if self.left < self.target_left:
+                distance = self.target_left - self.left
+                direction = 1
+            else:
+                distance = self.left - self.target_left
+                direction = -1
+
+            travel = min(distance, self.follow_speed * dt)
+            self.left += travel * direction
+
+        if self.target_bottom != self.bottom:
+            dirty = True
+            if self.bottom < self.target_bottom:
+                distance = self.target_bottom - self.bottom
+                direction = 1
+            else:
+                distance = self.bottom - self.target_bottom
+                direction = -1
+
+            travel = min(distance, self.follow_speed * dt)
+            self.bottom += travel * direction
+        if dirty:
+            self._update()

@@ -44,15 +44,17 @@ class Boulder(actor.Actor):
 
 class Player(actor.Actor):
     speed = 800
+    airspeed = 300
     jump_speed = 3000
     jump_duration = 0.2
 
     def __init__(self, input_handler, *args, **kwargs):
+        self.grounded = True
         player_image = pyglet.resource.image('data/images/smallest_pixel/Smallest Pixel - Run & Gun.png')
-        player_img_seq = pyglet.image.ImageGrid(player_image, 1, 7)
+        self.player_img_seq = pyglet.image.ImageGrid(player_image, 1, 7)
 
         frames = []
-        for i, image in enumerate(player_img_seq):
+        for i, image in enumerate(self.player_img_seq):
             image.anchor_x = 8
             image.anchor_y = 8
             frame = pyglet.image.AnimationFrame(image, .08)
@@ -72,23 +74,36 @@ class Player(actor.Actor):
 
     def act(self, dt):
         self.body.angle = 0
+        speed = self.speed if self.grounded else self.airspeed
+        moving = False
         if self.input_handler.key_down("LEFT"):
+            moving = True
             if self.scale_x > 0:
                 self.scale_x *= -1
-            self.body.velocity -= (self.speed * dt, 0)
+            self.body.velocity -= (speed * dt, 0)
 
         if self.input_handler.key_down("RIGHT"):
+            moving = True
             if self.scale_x < 0:
                 self.scale_x *= -1
-            self.body.velocity += (self.speed * dt, 0)
+            self.body.velocity += (speed * dt, 0)
+
+        if not moving and self.image != self.player_img_seq[0]:
+            self.image = self.player_img_seq[0]
+        elif self.image != self.animation:
+            self.image = self.animation
 
         if self.input_handler.key_down("JUMP"):
-            interval = min(dt, self.jump_time)
-            if interval:
-                self.jump_time -= interval
-                self.body.velocity += (0, self.jump_speed * dt)
+            if self.jump_time > 0 or self.grounded:
+                interval = min(dt, self.jump_time)
+                if interval:
+                    self.jump_time -= interval
+                    self.body.velocity += (0, self.jump_speed * dt)
         else:
-            self.jump_time = self.jump_duration
+            if self.grounded:
+                self.jump_time = self.jump_duration
+            else:
+                self.jump_time = 0
         super().act(dt)
 
 
@@ -103,7 +118,6 @@ if __name__ == "__main__":
     stage = Stage()
     space = stage.space
     stage.space.gravity = 0, -900
-
     input_handler = controls.KeyboardInputHandler({
         key.W: "UP",
         key.A: "LEFT",
@@ -129,25 +143,25 @@ if __name__ == "__main__":
         return input_handler.on_key_release(symbol, modifiers)
 
 
-    # maps = [generate_random_map(64, 64, {
-    #     DirtVoxel: 0.8,
-    #     MarbleVoxel: 0.2,
-        # DiamondVoxel: 0.8,
-        # IronVoxel: 0.005
-    # }) for _ in range(10)]
-    #
-    # map_state = np.hstack(maps)
+    maps = [generate_random_map(64, 64, {
+        DirtVoxel: 0.2,
+        IronVoxel: 0.2,
+        DiamondVoxel: 0.2,
+    }) for _ in range(2)]
+
+    map_state = np.hstack(maps)
     # cv2.imwrite("./data/new_level.png", map_state)
     # map_state = cv2.imread("./data/new_level.png")
-    # map = VoxelMap(state=map_state, space=space)
+    map = VoxelMap(state=map_state, space=space)
 
     player = Player(input_handler, x=1024, y=2060)
+    camera.look_at(player, animate=False)
     stage.add_actor(player)
 
 
     # image based loading
-    map_state = cv2.imread("./data/images/example_level.png")
-    map = VoxelMap(state=map_state, space=space)
+    # map_state = cv2.imread("./data/images/example_level.png")
+    # map = VoxelMap(state=map_state, space=space)
 
     # Infinite random map
     # map = VoxelGridStore(space=space, known_voxels={
@@ -192,6 +206,21 @@ if __name__ == "__main__":
             camera.update(zoom=zoom)
 
 
+    def pre_solve_platform(arbiter, space, data):
+        player.grounded = True
+        return True
+
+
+    def separate(arbiter, space, data):
+        player.grounded = False
+        return True
+
+
+
+    handler = stage.space.add_collision_handler(CollisionTypes.PLAYER, CollisionTypes.PLATFORM)
+    handler.pre_solve = pre_solve_platform
+    handler.separate = separate
+
     # label = FloatingLabel(camera, text="Ready!", font_name='Press Start 2P', font_size=64, x=0, y=0,
     #                       color=(0, 0, 0, 255), anchor_x='left',
     #                       anchor_y='bottom')
@@ -221,6 +250,7 @@ if __name__ == "__main__":
         if input_handler.key_down("EXIT_GAME"):
             exit(0)
         stage.act(dt)
+        camera.act(dt)
         camera.look_at(player)
         window.clear()
         map.draw(camera)
