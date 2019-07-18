@@ -7,7 +7,7 @@ class Actor(pyglet.sprite.Sprite):
         self.body = body
         self.body.position = x, y
         self.shape = shape
-        self.shape.actor = self
+        # self.shape.actor = self
 
     def act(self, dt):
         self.update(

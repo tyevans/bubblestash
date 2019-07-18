@@ -6,6 +6,77 @@ from bubblestash.actor import Actor
 
 EMPTY_VOXEL = (255, 255, 255)
 
+def walk_segments(vertices):
+    length = len(vertices)
+    for i in range(length-1):
+        a = i % length
+        b = i % length + 2
+        yield vertices[a:b]
+    yield vertices[-1], vertices[0]
+
+VOXEL_SEGMENTS = {
+    1: (
+        ((0, 16),(16, 0)),
+    ),
+    2: (
+        ((16, 0),(32, 16)),
+    ),
+    3: (
+        ((0, 16),(32, 16)),
+    ),
+    4: (
+        ((16, 32),(32, 16)),
+    ),
+    5: (
+        ((0, 0), (0, 16)),
+        ((0, 16), (16, 32)),
+        ((16, 32), (32, 32)),
+        ((32,32), (32, 16)),
+        ((32,16), (16,0)),
+        ((16,0), (0,0)),
+    ),
+    6: (
+        ((16,0), (16,32)),
+    ),
+    7: (
+        ((0,0), (0,16)),
+        ((0,16), (16,32)),
+        ((16,32), (32,32)),
+    ),
+    8: (
+        ((0,16), (16,32)),
+    ),
+    9: (
+        ((16,0), (16,32)),
+    ),
+    10: (
+        ((0,16), (0,32)),
+        ((0,32), (16,32)),
+        ((16,32), (32,16)),
+        ((32,16), (32,0)),
+        ((32,0), (16,0)),
+        ((16,0), (0,16)),
+    ),
+    11: (
+        ((0,32), (16,32)),
+        ((16,32), (32,16)),
+        ((32,16), (32, 0)),
+    ),
+    12: (
+        ((0,16), (32,16)),
+    ),
+    13: (
+        ((32,32), (32,16)),
+        ((32,16), (16,0)),
+        ((16,0), (0,0)),
+    ),
+    14: (
+        ((0,32), (0,16)),
+        ((0,16), (16,0)),
+        ((16,0), (32,0)),
+    )
+}
+
 
 class Voxel(Actor):
     _voxels_by_color = {}
@@ -23,123 +94,18 @@ class Voxel(Actor):
 
         body = pymunk.Body(body_type=pymunk.Body.STATIC, moment=10000)
 
-        if shape_value == 1:
-            vertices = [
-                (0, 0),
-                (16, 0),
-                (0, 16),
-            ]
-        elif shape_value == 2:
-            vertices = [
-                (16, 0),
-                (32, 0),
-                (32, 16),
-            ]
-        elif shape_value == 3:
-            vertices = [
-                (0, 0),
-                (32, 0),
-                (32, 16),
-                (0, 16),
-            ]
-        elif shape_value == 4:
-            vertices = [
-                (16, 32),
-                (32, 16),
-                (32, 32),
-            ]
-        elif shape_value == 5:
-            vertices = [
-                (0, 0),
-                (16, 0),
-                (32, 16),
-                (32, 32),
-                (16, 32),
-                (0, 16)
-            ]
-        elif shape_value == 6:
-            vertices = [
-                (16, 0),
-                (32, 0),
-                (32, 32),
-                (16, 32)
-            ]
-        elif shape_value == 7:
-            vertices = [
-                (0, 0),
-                (32, 0),
-                (32, 32),
-                (16, 32),
-                (0, 16),
-            ]
-        elif shape_value == 8:
-            vertices = [
-                (0, 32),
-                (0, 16),
-                (16, 32)
-            ]
-        elif shape_value == 9:
-            vertices = [
-                (0, 0),
-                (16, 0),
-                (16, 32),
-                (0, 32)
-            ]
-        elif shape_value == 10:
-            vertices = [
-                (0, 16),
-                (16, 0),
-                (32, 0),
-                (32, 16),
-                (16, 32),
-                (0, 32)
-            ]
-        elif shape_value == 11:
-            vertices = [
-                (0, 0),
-                (32, 0),
-                (32, 16),
-                (16, 32),
-                (0, 32)
-            ]
-        elif shape_value == 12:
-            vertices = [
-                (0, 16),
-                (32, 16),
-                (32, 32),
-                (0, 32)
-            ]
-        elif shape_value == 13:
-            vertices = [
-                (0, 0),
-                (16, 0),
-                (32, 16),
-                (32, 32),
-                (0, 32)
-            ]
-        elif shape_value == 14:
-            vertices = [
-                (16, 0),
-                (32, 0),
-                (32, 32),
-                (0, 32),
-                (0, 16)
-            ]
-        elif shape_value == 15:
-            vertices = [
-                (0, 0),
-                (32, 0),
-                (32, 32),
-                (0, 32)
-            ]
-        else:
-            vertices = []
-
-        poly = pymunk.Poly(body, vertices=vertices)
-        poly.elasticity = .2
-        poly.friction = 0.7
-        poly.collision_type = 0b00000001
-        super().__init__(body=body, shape=poly, img=self._voxels_sequence[self.shape_value], x=x * 32, y=y * 32,
+        vertices = VOXEL_SEGMENTS.get(shape_value)
+        print(shape_value, vertices)
+        segments = []
+        if vertices:
+            for a,b in vertices:
+                print(a, b)
+                segment = pymunk.Segment(body, a, b, 3)
+                segment.elasticity = .1
+                segment.friction = 0.7
+                segment.collision_type = 0b00000001
+                segments.append(segment)
+        super().__init__(body=body, shape=segments, img=self._voxels_sequence[self.shape_value], x=x * 32, y=y * 32,
                          **kwargs)
 
     @classmethod

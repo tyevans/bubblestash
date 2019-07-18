@@ -65,9 +65,9 @@ class Player(actor.Actor):
         self.input_handler = input_handler
         body = pymunk.Body(mass=5, moment=10000)
         body.center_of_gravity = (.5, .5)
-        poly = pymunk.Poly.create_box(body, size=(4, 16))
+        poly = pymunk.Poly.create_box(body, size=(4, 12))
         poly.elasticity = .3
-        poly.friction = 0.85
+        poly.friction = 0.8
         poly.collision_type = CollisionTypes.PLAYER
         super().__init__(img=self.animation, body=body, shape=poly, *args, **kwargs)
 
@@ -110,7 +110,7 @@ if __name__ == "__main__":
 
     CAMERA_MOVE_SPEED = 300
 
-    camera = Camera(0, 0, 1920, 1080)
+    camera = Camera(0, 0, 1920, 1080, zoom=0.3)
     camera.init_gl()
     window = GameWindow(width=1920, height=1080, camera=camera)
 
@@ -257,5 +257,5 @@ if __name__ == "__main__":
         # label.draw()
 
 
-    pyglet.clock.schedule_interval(update, 1 / 144.0)
+    pyglet.clock.schedule_interval(update, 1 / 60.0)
     pyglet.app.run()
