@@ -1,7 +1,8 @@
 import os
 from functools import lru_cache
 
-import cv2
+import numpy as np
+import pyglet
 
 from voxels.grid import VoxelGrid
 from voxels.perlin import generate_random_map
@@ -45,12 +46,14 @@ class VoxelGridStore(object):
         if not grid:
             filename = self._get_filename(x, y)
             if os.path.exists(filename):
-                state = cv2.imread(filename)
+                image = pyglet.image.load(filename).get_image_data()
+                state = np.frombuffer(image.get_data("BGR"), dtype=np.uint8).reshape([image.height, image.width, 3])
             else:
                 state = self.gen_state(x, y)
                 self[x, y] = state
 
-            grid = VoxelGridProxy(store=self, x=x, y=y, width=self.grid_width, height=self.grid_height, state=state, space=self.space)
+            grid = VoxelGridProxy(store=self, x=x, y=y, width=self.grid_width, height=self.grid_height, state=state,
+                                  space=self.space)
             self._cache[(x, y)] = grid
         return grid
 

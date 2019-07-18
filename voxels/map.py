@@ -34,18 +34,11 @@ class VoxelMap(object):
 
     def get_grid_at(self, x, y):
         i = y // self.grid_height * (self.width // self.grid_height) + (x // self.grid_width)
-        return self._grids[i]
+        if 0 <= i < len(self._grids):
+            return self._grids[i]
 
     def draw(self, camera):
-        center_x = camera.left + camera.width // 2
-        center_y = camera.bottom + camera.height // 2
-        scaled_half_width = camera.width * camera.zoom
-        scaled_half_height = camera.height * camera.zoom
-
-        left = int(center_x - scaled_half_width) // 32
-        right = int(center_x + scaled_half_width) // 32
-        bottom = int(center_y - scaled_half_height) // 32
-        top = int(center_y + scaled_half_height) // 32
+        left, right, bottom, top = camera.scaled_bounds() // 32
 
         for grid in self._grids:
             far_x = grid.x + grid.width
@@ -57,14 +50,15 @@ class VoxelMap(object):
     def __setitem__(self, key, value):
         x, y = key
         grid = self.get_grid_at(x, y)
-        grid[x, y] = value
+        if grid:
+            grid[x, y] = value
 
-        if x > 0 and x % self.grid_width == 0:
-            o_grid = self.get_grid_at(x - 1, y)
-            o_grid._dirty = True
+            if x > 0 and x % self.grid_width == 0:
+                o_grid = self.get_grid_at(x - 1, y)
+                o_grid._dirty = True
+                if y > 0 and y % self.grid_height == 0:
+                    o_grid = self.get_grid_at(x - 1, y - 1)
+                    o_grid._dirty = True
             if y > 0 and y % self.grid_height == 0:
                 o_grid = self.get_grid_at(x - 1, y - 1)
                 o_grid._dirty = True
-        if y > 0 and y % self.grid_height == 0:
-            o_grid = self.get_grid_at(x - 1, y - 1)
-            o_grid._dirty = True

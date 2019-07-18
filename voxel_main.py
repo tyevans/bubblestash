@@ -1,6 +1,5 @@
 import numpy as np
 
-import cv2
 import pyglet
 import pymunk
 from pyglet.window import key, mouse

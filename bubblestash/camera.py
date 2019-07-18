@@ -1,3 +1,4 @@
+import numpy as np
 import pyglet
 from pyglet import gl
 
@@ -33,7 +34,7 @@ class Camera(object):
         scaled_bottom = center_y - scaled_half_height
         scaled_top = center_y + scaled_half_height
 
-        return int(scaled_left), int(scaled_right), int(scaled_bottom), int(scaled_top)
+        return np.array([scaled_left, scaled_right, scaled_bottom, scaled_top])
 
     def screen_to_world_coords(self, x, y):
         scaled_left, scaled_right, scaled_bottom, scaled_top = self.scaled_bounds()
@@ -72,7 +73,7 @@ class Camera(object):
             -1, 1)
         gl.glMatrixMode(gl.GL_MODELVIEW)
 
-    def look_at(self, sprite: pyglet.sprite.Sprite, animate=True):
+    def look_at(self, sprite: pyglet.sprite.Sprite, animate=False):
         if animate:
             left = int(sprite.x - self.width // 2)
             bottom = int(sprite.y - self.height // 2)
